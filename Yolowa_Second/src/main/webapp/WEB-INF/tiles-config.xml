@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+   <!DOCTYPE tiles-definitions PUBLIC 
+        "-//Apache Software Foundation//DTD Tiles Configuration 3.0//EN" 
+        "http://tiles.apache.org/dtds/tiles-config_3_0.dtd">
+<tiles-definitions>
+	<definition name="home.tiles" template="/WEB-INF/views/templates/layout.jsp">
+		<put-attribute name="title" value="Home" />
+		<put-attribute name="header" value="/WEB-INF/views/templates/header.jsp" />
+		<put-attribute name="leftPopup" value="/WEB-INF/views/templates/leftPopup.jsp" />
+		<put-attribute name="rightPopup" value="/WEB-INF/views/templates/rightPopup.jsp" />
+		<put-attribute name="rightContent" value="/WEB-INF/views/board/rightContent.jsp" />
+		<put-attribute name="content" value="/WEB-INF/views/home.jsp" />
+	</definition>
+	<!-- 
+		  */* : {1}/{2}
+	 	  예를 들어 Controller에서 member/register로 응답하면 
+	 	  WEB-INF/views/member/register.jsp가 메인 화면에 include된다.
+	 -->
+	<definition name = "*/*.tiles" extends = "home.tiles">
+		<put-attribute name="title" value = "{2}"></put-attribute>
+		<put-attribute name="content" value = "/WEB-INF/views/{1}/{2}.jsp"></put-attribute>
+	</definition>
+	
+	<definition name = "*/*.contentTiles" template ="/WEB-INF/views/templates/layout3.jsp">
+		<put-attribute name="title" value="Home" />
+		<put-attribute name="header" value="/WEB-INF/views/templates/header.jsp" />
+		<put-attribute name="leftPopup" value="/WEB-INF/views/templates/leftPopup.jsp" />
+		<put-attribute name="rightPopup" value="/WEB-INF/views/templates/rightPopup.jsp" />
+		<put-attribute name="rightContent" value="/WEB-INF/views/board/rightContent.jsp" />
+		<put-attribute name="contentMenu" value="/WEB-INF/views/board/contentMenu.jsp" />
+		<put-attribute name="contentByMenu" value="/WEB-INF/views/{1}/{2}.jsp" />
+	</definition>
+	
+	<definition name = "*/*.myTiles"  template="/WEB-INF/views/templates/layout2.jsp">
+		<put-attribute name="title" value="Mypage" />
+		<put-attribute name="header" value="/WEB-INF/views/templates/header.jsp" />
+		<put-attribute name="leftPopup" value="/WEB-INF/views/templates/myLeftPopup.jsp" />
+		<put-attribute name="rightPopup" value="/WEB-INF/views/templates/rightPopup.jsp" />
+		<put-attribute name="content" value = "/WEB-INF/views/{1}/{2}.jsp"></put-attribute>
+	</definition>
+</tiles-definitions>   

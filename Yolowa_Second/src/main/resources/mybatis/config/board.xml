@@ -1,0 +1,245 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sql Mapper -->
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="board">
+   <resultMap type="map" id="getAllBoardListRM">
+      <result property="bNo" column="bNo" />
+      <result property="bType" column="bType" />
+      <result property="id" column="id" />
+      <result property="bPostdate" column="bPostdate" />
+      <result property="bContent" column="bContent" jdbcType="CLOB"
+         javaType="java.lang.String" />
+      <result property="local" column="local" />
+      <result property="filepath" column="filepath" />
+      <result property="countlike" column="countlike" />
+      <result property="fTitle" column="fTitle" />
+      <result property="fPoint" column="fPoint" />
+      <result property="fDeadLine" column="fDeadLine" />
+      <result property="fPeople" column="fPeople" />
+      <result property="totalpoint" column="totalpoint" />
+      <result property="count" column="count" />
+      <result property="fTitle" column="fTitle" />
+      <result property="fPoint" column="fPoint" />
+      <result property="fDeadLine" column="fDeadLine" />
+      <result property="fPeople" column="fPeople" />
+      <result property="count" column="count" />
+   </resultMap>
+   
+<!-- select bo.bNo, bo.bType,
+        bo.id, to_char(bo.bPostdate, 'YYYY/MM/DD HH24:MI') as bPostdate,
+         bo.bContent, bop.local, bop.filePath, c.countlike,
+         f.fTitle, f.fPoint, to_char(f.fDeadLine, 'YYYY/MM/DD HH24:MI') as fDeadLine, fPeople,p.totalpoint,p.count 
+         from Y_BOARD bo, BOARD_OPT bop, funding f, (select bNo, count(*) as countlike from contentlike group by bNo) c,(select bNo,sum(fpoint) as totalpoint, count(id) as count from paticipant group by bNo) p
+         where bop.bNo(+) = bo.bNo and f.bNo(+)=bo.bNo and c.bNo(+)= bo.bNo and p.bNo(+)= bo.bNo and bo.id=#{id} order by bo.bNo desc -->
+
+
+   <select id="findBoardListByKeyword" resultMap="getAllBoardListRM" parameterType = "string">
+      select bo.bNo,
+      bo.bType, bo.id, to_char(bo.bPostdate, 'YYYY/MM/DD
+      HH24:MI') as
+      bPostdate, bo.bContent, bop.local, bop.filePath,
+      c.countlike, f.fTitle, f.fPoint, to_char(f.fDeadLine, 'YYYY/MM/DD HH24:MI') as fDeadLine, fPeople,p.totalpoint,p.count 
+      from
+      Y_BOARD bo, BOARD_OPT bop, (select bNo, count(*) as countlike from
+      contentlike group by bNo) c, funding f, (select bNo,sum(fpoint) as totalpoint, count(id) as count from paticipant group by bNo) p
+      where bop.bNo(+) = bo.bNo and
+      c.bNo(+) =bo.bNo and f.bNo(+)=bo.bNo and p.bNo(+)= bo.bNo and
+      (upper(bo.bContent) like '%' || upper(#{value}) || '%'
+      or upper(bo.id) like '%' || upper(#{value}) || '%' or upper(bo.bType)
+      like '%' || upper(#{value}) || '%')
+   </select>
+
+   <select id="getAllBoardList" resultMap="getAllBoardListRM">
+      select bo.bNo, bo.bType,
+        bo.id, to_char(bo.bPostdate, 'YYYY/MM/DD HH24:MI') as bPostdate,
+         bo.bContent, bop.local, bop.filePath, c.countlike, f.fTitle
+         from Y_BOARD bo, BOARD_OPT bop, (select bNo, count(*) as countlike from
+         contentlike group by bNo) c, funding f
+         where bop.bNo(+) = bo.bNo and c.bNo(+)= bo.bNo and f.bNo(+)=bo.bNo order by bo.bNo desc
+   </select>
+
+   <select id="getAllBoardListByCategory" parameterType="string"
+      resultMap="getAllBoardListRM">
+      select bo.bNo, bo.bType,
+        bo.id, to_char(bo.bPostdate, 'YYYY/MM/DD HH24:MI') as bPostdate,
+         bo.bContent, bop.local, bop.filePath, c.countlike, f.fTitle
+         from Y_BOARD bo, BOARD_OPT bop, (select bNo, count(*) as countlike from
+         contentlike group by bNo) c, funding f
+         where bop.bNo(+) = bo.bNo and c.bNo(+) = bo.bNo and f.bNo(+)=bo.bNo and bo.bType=#{value} order by bo.bNo desc
+   </select>
+   
+   
+   <resultMap type="map" id="getAllCustomizedBoardListRM">
+      <result property="bNo" column="bNo" />
+      <result property="bType" column="bType" />
+      <result property="id" column="id" />
+      <result property="bPostdate" column="bPostdate" />
+      <result property="bContent" column="bContent" jdbcType="VARCHAR"
+         javaType="java.lang.String" />
+      <result property="local" column="local" />
+      <result property="filepath" column="filepath" />
+      <result property="countlike" column="countlike" />
+      <result property="totalpoint" column="totalpoint" />
+      <result property="count" column="count" />
+      <result property="fTitle" column = "fTitle"/>
+   </resultMap>
+   
+   <select id="getAllCustomizedBoardListById" parameterType="string" resultMap="getAllCustomizedBoardListRM">
+      select distinct bo.bNo, bo.bType,
+        bo.id, to_char(bo.bPostdate, 'YYYY/MM/DD HH24:MI') as bPostdate,
+         DBMS_LOB.SUBSTR(bo.bContent, 30000, 1) as bContent, bop.local, bop.filePath, c.countlike, f.fTitle
+         from Y_BOARD bo, BOARD_OPT bop, (select bNo, count(*) as countlike from
+         contentlike group by bNo) c, funding f, interest i, category ct
+         where bop.bNo(+) = bo.bNo and c.bNo(+) = bo.bNo and f.bNo(+)=bo.bNo and bo.bType=ct.cType and i.cNo=ct.cNo and i.id=#{value} order by bo.bNo desc
+   </select>
+
+   <insert id="writeFunding" parameterType="map">
+      insert all into y_board
+      values(seq_yboard.nextval,#{bContent},sysdate,#{bType},#{id}) into
+      board_opt(optNo,bNo,local,filepath)
+      values(seq_opt.nextval,seq_yboard.nextval,#{local},#{filepath})
+      into
+      funding(fTitle,fPoint,fDeadLine,fPeople,bNo)
+      values(#{fTitle},#{fPoint},#{fDeadLine},#{fPeople},seq_yboard.nextval)
+      select *
+      from dual
+   </insert>
+
+   <insert id="writeContext" parameterType="map">
+      insert all into y_board
+      values(seq_yboard.nextval,#{bContent},sysdate,#{bType},#{id}) into
+      board_opt(optNo,bNo,local,filepath)
+      values(seq_opt.nextval,seq_yboard.nextval,#{local},#{filepath}) select
+      * from dual
+   </insert>
+   <!-- 댓글 -->
+   <resultMap type="replyVO" id="getReplyRM">
+      <result property="memberVO.id" column="id"/>
+      <result property="boardVO.bNo" column="bNo"/>
+      <result property="rContent" column="rContent" jdbcType="CLOB" javaType="java.lang.String"/>
+   </resultMap>
+   <select id="getAllListReply" resultMap="getReplyRM">
+      select * from reply order by rNo asc
+   </select>
+   <select id="getReplyByRno" resultMap="getReplyRM">
+      select * from reply where rNo=#{rNo}
+   </select>
+   <insert id="writeReply" parameterType="replyVO">
+      insert into reply
+      values(seq_reply.nextval, #{rContent}, seq_reply_group.nextval, 0, 0, 0, #{memberVO.id}, #{boardVO.bNo})
+   </insert>
+   <delete id="deleteReply" parameterType="String">
+      delete from reply where rNo=#{value}
+   </delete>
+   <update id="modifyReply" parameterType="replyVO">
+      update reply set rContent=#{rContent} where rNo=#{rNo}
+   </update>
+   
+   <!-- 삭제 -->
+   <delete id="deleteBoard" parameterType="string">
+      delete from Y_BOARD where
+      bNo=${value}
+   </delete>
+   <select id = "confirmLike" parameterType = "map" resultType = "int">
+      select count(*) from contentlike where bNo = #{bNo} and id = #{id}
+   </select>
+   
+   <insert id = "insertLike" parameterType="map">
+      insert into contentlike values(#{bNo}, #{id})
+   </insert>
+   
+   <insert id = "deleteLike" parameterType="map">
+      delete from contentlike where bNo = #{bNo} and id = #{id}
+   </insert>
+   
+   <select id = "selectLike" parameterType = "map" resultType = "map">
+      select m.* from(select * from contentlike where bNo = #{bNo}) cl, y_member m where m.id=cl.id
+   </select>
+   <!-- 수정 -->
+   <select id="getContenBybNo" parameterType="Integer" resultMap="getAllBoardListRM">
+      select bo.*,bop.*
+      from Y_BOARD bo, BOARD_OPT bop
+      where bop.bNo=bo.bNo
+      and bo.bNo=#{value}
+   </select>
+   <update id="modifyBoard" parameterType="map">
+      update y_board set
+      bContent=#{bContent}, bType=#{bType} where bNo=#{bNo}
+   </update>
+   <update id="modifyBoardopt" parameterType="map">
+      update board_opt set
+      local=#{local}, filepath=#{filepath} where bNo=#{bNo}
+   </update>
+   <!-- 북마크 -->
+   <insert id="bookMark" parameterType="map">
+   insert into bookmark(id,bNo) values(#{id},#{bNo})
+   </insert>
+   <select id="checkBook" parameterType="map" resultType="int">
+   select count(*) as count from bookmark where id=#{id} and bNo=#{bNo}
+   </select>
+   <delete id="bookMarkCancle" parameterType="map">
+   delete from bookmark where id=#{id} and bNo=#{bNo}
+   </delete>
+   <select id="bookingList" resultMap="getAllBoardListRM">
+   select bo.bNo, bo.bType,
+        bo.id, to_char(bo.bPostdate, 'YYYY/MM/DD HH24:MI') as bPostdate,
+         bo.bContent, bop.local, bop.filePath, c.countlike,
+         f.fTitle, f.fPoint, to_char(f.fDeadLine, 'YYYY/MM/DD HH24:MI') as fDeadLine, fPeople,p.totalpoint,p.count 
+         from Y_BOARD bo, BOARD_OPT bop, funding f, (select bNo, count(*) as countlike from contentlike group by bNo) c,(select bNo,sum(fpoint) as totalpoint, count(id) as count from paticipant group by bNo)p,
+         (select bNo from bookmark where id=#{id}) bk
+         where bop.bNo(+) = bo.bNo and f.bNo(+)=bo.bNo and c.bNo(+)= bo.bNo and p.bNo(+)= bo.bNo and bk.bNo= bo.bNo order by bo.bNo desc
+   </select>
+   
+   <select id = "myList" resultMap = "getAllBoardListRM">
+      select bo.bNo, bo.bType,
+        bo.id, to_char(bo.bPostdate, 'YYYY/MM/DD HH24:MI') as bPostdate,
+         bo.bContent, bop.local, bop.filePath, c.countlike,
+         f.fTitle, f.fPoint, to_char(f.fDeadLine, 'YYYY/MM/DD HH24:MI') as fDeadLine, fPeople,p.totalpoint,p.count 
+         from Y_BOARD bo, BOARD_OPT bop, funding f, (select bNo, count(*) as countlike from contentlike group by bNo) c,(select bNo,sum(fpoint) as totalpoint, count(id) as count from paticipant group by bNo) p
+         where bop.bNo(+) = bo.bNo and f.bNo(+)=bo.bNo and c.bNo(+)= bo.bNo and p.bNo(+)= bo.bNo and bo.id=#{id} order by bo.bNo desc
+   </select>
+   
+   <select id="memberCount" resultType="int">
+      select count(*) from Y_MEMBER
+   </select>
+   
+   <select id="contentCount" resultType="int">
+      select count(*) from Y_BOARD b, FUNDING f where f.bNo(+)=b.bNo and f.fTitle is null
+   </select>
+   
+   <select id="fundingCount" resultType="int">
+      select count(*) from FUNDING
+   </select>
+</mapper>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+

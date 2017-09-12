@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sql Mapper -->
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="fund">
+	<resultMap type="boardVO" id="list">
+		<result column="ftitle" property="fvo.fTitle" />
+		<result column="name" property="mvo.name" />
+		<result column="fpeople" property="fvo.fPeople" />
+	</resultMap>
+	<resultMap type="map" id="fundListRM">
+		<result property="bNo" column="bNo" />
+		<result property="bType" column="bType" />
+		<result property="id" column="id" />
+		<result property="bPostdate" column="bPostdate" />
+		<result property="bContent" column="bContent" jdbcType="CLOB"
+			javaType="java.lang.String" />
+		<result property="local" column="local" />
+		<result property="filepath" column="filepath" />
+		<result property="countlike" column="countlike" />
+		<result property="fTitle" column="fTitle" />
+		<result property="fPoint" column="fPoint" />
+		<result property="fDeadLine" column="fDeadLine" />
+		<result property="fPeople" column="fPeople" />
+		<result property="totalpoint" column="totalpoint" />
+		<result property="count" column="count" />
+	</resultMap>
+	<select id="getAllFundList" resultMap="fundListRM">
+		select bo.bNo, bo.bType,
+     	bo.id, to_char(bo.bPostdate, 'YYYY/MM/DD HH24:MI') as bPostdate,
+      	bo.bContent, bop.local, bop.filePath, c.countlike,
+      	f.fTitle, f.fPoint, to_char(f.fDeadLine, 'YYYY/MM/DD') as fDeadLine,
+      	f.fPeople,p.totalpoint,p.count 
+      	from Y_BOARD bo, BOARD_OPT bop, funding f,
+      	(select bNo, count(*) as countlike from contentlike group by bNo) c,
+      	(select bNo,sum(fpoint) as totalpoint, count(id) as count from paticipant group by bNo) p
+      	where bop.bNo(+) = bo.bNo and f.bNo(+)=bo.bNo and c.bNo(+)= bo.bNo and p.bNo(+)= bo.bNo order by bo.bNo desc
+	</select>
+	
+	
+	<select id="getFundingBybNo" parameterType="Integer" resultMap="fundListRM" >
+		select  bo.*,bop.*,f.*
+      	from Y_BOARD bo, BOARD_OPT bop, funding f
+      	where bop.bNo=bo.bNo and bop.bNo=f.bNo and bo.bNo=f.bNo and bo.bNo=#{value}
+	</select>
+	
+	<!-- 펀딩수정 -->
+	<update id="modifyBoard" parameterType="map">
+		update y_board set bContent=#{bContent}, bType=#{bType} where bNo=#{bNo}
+	</update>
+	<update id="modifyBoardopt" parameterType="map">
+		update board_opt set local=#{local}, filepath=#{filepath} where bNo=#{bNo}
+	</update>
+	<update id="modifyFunding" parameterType="map">
+		update funding set fTitle=#{fTitle}, fPoint=#{fPoint},fDeadLine=#{fDeadLine},
+		fPeople=#{fPeople} where bNo=#{bNo}
+	</update>
+	
+	<select id="selectCountFunding" parameterType="map" resultType="Integer">
+		select count(id) from paticipant where bNo=#{bNo} and id=#{id}
+	</select>
+	
+	<!-- 펀딩지원 -->
+	<insert id="applyFunding" parameterType="map">
+		insert into PATICIPANT values(#{id},#{bNo},100)
+	</insert>
+	<select id="getPointandPeopleBybNo" parameterType="map" resultType="map">
+		select sum(fpoint) as totalpoint, count(id) as count from paticipant where bNo=#{bNo}
+	</select>
+	<delete id="cancleFunding" parameterType="map">
+		delete PATICIPANT where bNo=#{bNo} and id=#{id}
+	</delete>
+	<select id="checkGoalFunding" parameterType="map" resultType="map">
+		select f.fpeople,f.fpoint,p.totalpoint, p.count
+		from funding f,
+		(select bNo,sum(fpoint) as totalpoint, count(id) as count from paticipant group by bNo) p
+		where p.bNo(+)=f.bNo and f.bNo=#{bNo}
+	</select>
+	<!-- 펀딩삭제 -->
+	<delete id="deleteFund" parameterType="string">
+		delete from Y_BOARD where bNo=${value}
+	</delete>
+</mapper>
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+

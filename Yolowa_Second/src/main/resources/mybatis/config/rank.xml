@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sql Mapper -->
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="rank">
+	<insert id="insertRank">
+		insert into rank(keyword) values(#{value})
+	</insert>
+	
+	<select id="selectCountKeyword" resultType="int">
+   		select count(*) from rank where keyword=#{value}
+   </select>
+   
+	<update id="updateRank" >
+		update rank set count=count+1 where keyword=#{value}
+	</update>
+	
+	<select id="selectRank" resultType="map">
+		select keyword, count, ranking 
+		from(select keyword, count, rank() over(order by count desc) as ranking from rank)
+		<![CDATA[
+		where ranking <= 5
+		]]>
+	</select>
+	
+	<select id="autoKeyword" resultType="map">
+		select keyword from rank 
+		where upper(keyword) like '%' || upper(#{value}) || '%'
+	</select>		
+</mapper>

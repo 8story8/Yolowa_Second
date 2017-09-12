@@ -1,0 +1,330 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!-- Sql Mapper -->
+<!DOCTYPE mapper
+PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="member">
+
+	<resultMap type="java.util.HashMap" id="getLogRM">
+		<result property="lDate" column="lDate" />
+		<result property="lContent" column="lContent" jdbcType="CLOB"
+			javaType="java.lang.String" />
+		<result property="point" column="point" />
+	</resultMap>
+	
+	<select id="memberLogin" parameterType="memberVO" resultType="int">
+		select count(*) from y_member where id=#{id} and password=#{password}
+	</select>
+
+	<select id="successMember" parameterType="string" resultType="memberVO">
+		select m.id,m.password,m.name,m.address,m.phone,m.filepath,p.point,g.grade
+		from point p, y_member m, grade g where p.id=m.id and m.id=#{value} and
+		<![CDATA[
+			 p.point >= g.lowpoint and p.point <= g.highpoint
+		]]>
+	</select>
+
+	<select id="member.searchId" parameterType="memberVO"
+		resultType="memberVO">
+		select * from y_member where name=#{name} and
+		phone=#{phone}
+	</select>
+
+	<!-- 회원정보 수정& 카테고리 -->
+	<resultMap type="map" id="getCategoryListRM">
+		<result property="cNO" column="cNo" />
+	</resultMap>
+	<update id="modifyMember" parameterType="memberVO">
+		update y_member set
+		password=#{password},name=#{name},address=#{address},phone=#{phone}
+		where id=#{id}
+	</update>
+
+	<delete id="deleteCategory" parameterType="memberVO">
+		delete from interest
+		where id=#{id}
+	</delete>
+	<select id="getCategoryList" parameterType="String" resultType="categoryVO">
+		select c.cNo, c.cType
+		from interest i, category c
+		where i.cNo=c.cNo and
+		i.id=#{value}
+	</select>
+
+	<!-- 수정,, 친구 추가된 리스트 -->
+	<select id="memberSearchFriends" parameterType="string"
+		resultType="friendVO">
+		select * from(select * from
+		follow where sendId=#{value}or
+		receiveId=#{value})f where f.fcheck='true'
+	</select>
+
+	<select id="memberSearchFollowFriends" parameterType="string"
+		resultType="friendVO"> select * from follow where sendId=#{value} or
+		receiveId=#{value}
+	</select>
+
+	<select id="memberMessageBox" parameterType="map" resultType="messageVO">
+		select * from message where sId=#{sId} and rId = #{rId} or sId=#{rId}
+		and rId=#{sId}
+	</select>
+
+	<select id="searchCategory" resultType="categoryVO">
+		select * from category order by cNo asc
+	</select>
+
+	<insert id="registerMember" parameterType="memberVO">
+		insert into
+		y_member(id,password,name,address,phone,filePath)
+		values(#{id},#{password},#{name},#{address},#{phone},#{filePath})
+	</insert>
+
+	<insert id="registerInterest" parameterType="java.util.HashMap">
+		insert into
+		interest(id,cNo) values(#{id},#{cNo})
+	</insert>
+
+
+	<select id="registerPoint" parameterType="string">
+		insert into point
+		values(#{id},100)
+	</select>
+
+	<insert id="member.friendAdd" parameterType="friendVO">
+		insert into
+		follow(sendId,receiveId) values(#{sendId},#{receiveId})
+	</insert>
+
+	<select id="member.findInterestById" parameterType="string"
+		resultType="int">
+		select i.cNo from interest i, category c
+		where i.id=#{value}
+		and i.cNo=c.cNo
+	</select>
+	
+	<select id="idcheck" resultType="int">
+		select count(*) from y_member
+		where id=#{value}
+	</select>
+
+	<resultMap type="map" id="profile">
+		<result property="filePath" column="filepath" />
+	</resultMap>
+
+	<update id="updateProfile" parameterType="fileVO">
+		update y_member set
+		filepath=#{path} where id=#{userInfo}
+	</update>
+
+	<insert id="sendMessage" parameterType="messageVO">
+		insert into
+		message(mNo,rId,sId,message,mPostdate)
+		values(seq_message.nextval,#{rId},#{sId},#{message},sysdate)
+	</insert>
+
+	<select id="findRecommendFriends" parameterType="java.util.HashMap"
+		resultType="memberVO">
+		<if test="list_category.size == 1">
+			select m.* from(select distinct id from interest where
+			cNo=#{list_category[0]})A, y_member m where m.id=A.id and m.id !=
+			#{id}
+		</if>
+		<if test="list_category.size == 2">
+			select m.* from(select distinct id from interest where
+			cNo=#{list_category[0]} or cNo=#{list_category[1]})A, y_member m
+			where m.id=A.id and m.id != #{id}
+		</if>
+		<if test="list_category.size == 3">
+			select m.* from(select distinct id from interest where
+			cNo=#{list_category[0]} or cNo=#{list_category[1]} or
+			cNo=#{list_category[2]})A, y_member m where m.id=A.id and m.id !=
+			#{id}
+		</if>
+	</select>
+
+	<select id="member.requestList" parameterType="string"
+		resultType="friendVO">
+		select sendId from follow where receiveId=#{value} and
+		fcheck='false'
+	</select>
+
+	<select id="member.findMemberById" parameterType="string"
+		resultType="memberVO">
+		select * from y_member where id=#{value}
+	</select>
+
+	<update id="member.requestAccept" parameterType="friendVO">
+		update follow
+		set fcheck = 'true' where sendId=#{sendId} and
+		receiveId=#{receiveId}
+	</update>
+
+	<delete id="member.friendDelete" parameterType="friendVO">
+		delete from
+		follow where sendId=#{sendId} and receiveId=#{receiveId}
+		or
+		sendId=#{receiveId} and receiveId=#{sendId}
+	</delete>
+	<!-- 주희 : 검색 -->
+	<select id="findMemberListByKeyword" resultType="String">
+		select distinct
+		m.id
+		from y_member m, (select i.id, c.cNo, c.cType from interest i,
+		category c where i.cNo=c.cNo) a
+		where m.id=a.id(+) and
+		(upper(m.id) like
+		'%' || upper(#{value}) || '%' or upper(a.cType) like '%' ||
+		upper(#{value}) || '%' or upper(m.name) like '%' || upper(#{value}) ||
+		'%')
+	</select>
+	<select id="getMemberById" parameterType="string" resultType="memberVO">
+		select m.id, m.name, m.filepath, p.point, g.grade
+		from point p, y_member m, grade g where p.id=m.id and m.id=#{value} and
+		<![CDATA[
+			 p.point >= g.lowpoint and p.point <= g.highpoint
+		]]>
+	</select>
+
+	<select id="getMemberType" resultType="categoryVO">
+		select c.cNo, c.cType
+		from
+		interest i, category c
+		where i.cNo=c.cNo and i.id=#{value}
+	</select>
+
+	<select id="myAllReceiveMsg" resultType="messageVO"
+		parameterType="java.util.Map">
+		select A.mNo,A.rId,A.sId,A.message,A.mPostdate,A.mCheck
+		from(select
+		row_number() over(order by mNo desc)as rnum,
+		M.mNo,M.rId,M.sId,M.message,M.mPostdate,M.mCheck from
+		(select * from
+		message where mCheck='SM' or mCheck='SD' or mCheck='RM')M where
+		M.rId=#{id})A
+		where
+		rnum
+		between #{page.startRowNumber} and
+		#{page.endRowNumber}
+	</select>
+
+	<select id="myAllSendMsg" resultType="messageVO" parameterType="java.util.Map">
+		select A.mNo,A.rId,A.sId,A.message,A.mPostdate,A.mCheck
+		from(select
+		row_number() over(order by mNo desc)as rnum,
+		M.mNo,M.rId,M.sId,M.message,M.mPostdate,M.mCheck from
+		(select * from
+		message where mCheck='RD' or mCheck='RM' or mCheck='SM')M where
+		M.sId=#{id})A
+		where
+		rnum
+		between #{page.startRowNumber} and
+		#{page.endRowNumber}
+	</select>
+
+	<select id="sendMsgMemberInfo" parameterType="string"
+		resultType="string">
+		select distinct sId from message where rId=#{value}
+	</select>
+
+	<select id="receiveMsgMemberInfo" parameterType="string"
+		resultType="string">
+		select distinct rId from message where sId=#{value}
+	</select>
+
+	<select id="getTotalMyMsg" parameterType="string" resultType="int">
+		select count(*) from message where rId=#{value} and mCheck != 'RD'
+	</select>
+
+	<select id="getTotalMySendMsg" parameterType="string"
+		resultType="int">
+		select count(*) from message where sId=#{value} and mCheck != 'SD'
+	</select>
+
+	<update id="deleteSendMsg" parameterType="map">
+		update message set
+		mCheck='SD' where mNo=#{deleteNum} and sId=#{id}
+	</update>
+	<update id="deleteReceiveMsg" parameterType="map">
+		update message set
+		mCheck='RD' where mNo=#{deleteNum} and rId=#{id}
+	</update>
+
+	<select id="checkStatusMessage" parameterType="map" resultType="string">
+		select mCheck from message where mNo=#{mNo}
+	</select>
+	<delete id="deleteMsg" parameterType="string">
+		delete from message
+		where
+		mNo=#{value}
+	</delete>
+
+	<select id="member.findFriendById" parameterType="string"
+		resultType="memberVO">
+		select m.*, p.point from point p, y_member m
+		where m.id=p.id(+) and m.id=#{value}
+	</select>
+	
+	<update id="member.pointSave" parameterType="string">
+		update point set point=point+50 where id=#{value}
+	</update>
+	
+	<select id="member.getLogDateById" parameterType="string" resultType="string">
+		select to_char(lDate,'yyyy-mm-dd')as lDate from (select * from log where id=#{value} order by lNo desc) where rownum=1
+	</select>
+
+	<insert id="member.logData" parameterType="java.util.HashMap">
+		insert into log
+		values(seq_log.nextval,#{content},#{point},to_date(sysdate),#{id})
+	</insert>
+
+	<select id="requestMsg" parameterType="string" resultType="int">
+		select count(sId) from message where rId=#{value} and mCheck = 'SM'
+	</select>
+	<update id="readMsg" parameterType="int">
+		update message set
+		mCheck='RM' where mNo =#{value}
+	</update>
+	
+	<select id="member.getPointList" parameterType="string" resultMap="getLogRM">
+		select lContent, point, to_char(lDate,'yyyy-mm-dd')as lDate from log where id = #{value} order by lNo desc
+	</select>
+	
+	<!-- Spring Security에서 권한 체크를 위해 사용 -->
+	<select id="selectAuthorityByUsername" resultType="authority">
+		SELECT
+		username,authority
+		FROM authorities
+		WHERE username=#{username}
+	</select>
+	
+	<insert id="registerRole" parameterType="authority">
+		insert into authorities(username,authority) values(#{username},#{authority})
+	</insert>
+	
+	<update id="readMsgChat" parameterType="friendVO">
+			update message set
+		mCheck='RM' where sId=#{sendId} and rId=#{receiveId}
+	</update>
+	<!-- 펀드신청 포인트 가감 -->
+	<update id="increasPoint" parameterType="map">
+		update POINT set point=point+100 where id=#{id}
+	</update>
+	<update id="deductionPoint" parameterType="map">
+		update POINT set point=point-100 where id=#{id}
+	</update>
+	<select id="checkMyPoint" resultType="int" parameterType="map">
+		select point from POINT where id=#{id}
+	</select>
+	
+	<delete id="member.withdraw" parameterType="string">
+		delete from y_member where id=#{value}
+	</delete>
+	
+	<select id="member.findMember" parameterType="map" resultType="memberVO">
+		select * from Y_member where id=#{id} and name=#{name} and phone=#{phone}
+	</select>
+	
+	<update id="member.changePass" parameterType="map">
+		update y_member set password=#{password} where id=#{id}
+	</update>
+</mapper>

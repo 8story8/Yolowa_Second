@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans xmlns="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:tx="http://www.springframework.org/schema/tx" xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:mvc="http://www.springframework.org/schema/mvc"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc-4.2.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans-4.2.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context-4.2.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop-4.2.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-4.2.xsd">
+	<!-- org.saiden 패키지 이하의 모든 Annotation 설정 클래스를 객체로 생성 @Controller Annotation 
+		명시 클래스 객체 생성은 제외한다. Controller 생성은 servlet-context.xml에서 한다. -->
+
+	
+	<context:component-scan base-package="org.springmvc.yolowa">
+		<context:exclude-filter type="annotation" 
+		expression="org.springframework.stereotype.Controller"/>
+	</context:component-scan>
+	
+	<aop:aspectj-autoproxy></aop:aspectj-autoproxy>
+	<!-- DBCP와 Mybatis 연동 설정 -->
+	<!-- dataSource -->
+	<bean id="dataSource" class="org.apache.commons.dbcp.BasicDataSource">
+		<property name="driverClassName">
+			<value>oracle.jdbc.driver.OracleDriver</value>
+		</property>
+		<property name="url">
+			<value>jdbc:oracle:thin:@127.0.0.1:1521:xe</value>
+		</property>
+		<property name="username">
+			<value>scott</value>
+		</property>
+		<property name="password">
+			<value>tiger</value>
+		</property>
+		<property name="maxActive">
+			<value>30</value>
+		</property>
+	</bean>
+	<!-- MyBatis 연동 설정 -->
+	<bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<property name="dataSource" ref="dataSource"></property>
+		<property name="configLocation"
+			value="classpath:mybatis/config/SqlSessionConfig.xml"></property>
+	</bean>
+	<bean id="sqlSessionTemplate" class="org.mybatis.spring.SqlSessionTemplate">
+		<constructor-arg ref="sqlSessionFactory"></constructor-arg>
+	</bean>
+
+		<!-- Transaction 연동 설정 -->
+	<bean id="transactionManager"
+		class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<property name="dataSource" ref="dataSource"></property>
+	</bean>
+
+	<!-- Annotation 기반 Transaction 관리 설정 -->
+	<tx:annotation-driven transaction-manager="transactionManager" />
+</beans>

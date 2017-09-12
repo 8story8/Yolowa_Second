@@ -1,0 +1,7 @@
+=\=\=\=\=\=\=
+<<<<<<<=HEAD
+>>>>>>>=branch 'master' of https\://github.com/limkyoungsoo/yolowa.git
+eclipse.preferences.version=1
+encoding//src/main/webapp/WEB-INF/views/board/mainAllContent.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/views/board/writeFundingView.jsp=UTF-8
+encoding//src/main/webapp/WEB-INF/views/home.jsp=UTF-8
